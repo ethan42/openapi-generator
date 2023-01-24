@@ -42,12 +42,12 @@ impl Default for Configuration {
         Configuration {
             base_path: "http://petstore.swagger.io/v2".to_owned(),
             user_agent: Some("OpenAPI-Generator/1.0.0/rust".to_owned()),
-            client: reqwest_middleware::ClientBuilder::new(reqwest::Client::new()).build(),
+            client: reqwest_middleware::ClientBuilder::new(reqwest::blocking::Client::new())
+                .build(),
             basic_auth: None,
             oauth_access_token: None,
             bearer_access_token: None,
             api_key: None,
-
         }
     }
 }
