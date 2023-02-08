@@ -1,4 +1,4 @@
-FROM maven:3.6.3-jdk-11-openj9
+FROM maven:3.6.3-jdk-11-openj9 as builder
 
 ENV GEN_DIR /opt/openapi-generator
 WORKDIR ${GEN_DIR}
@@ -20,12 +20,12 @@ COPY ./modules/openapi-generator ${GEN_DIR}/modules/openapi-generator
 COPY ./pom.xml ${GEN_DIR}
 
 # Pre-compile openapi-generator-cli
-RUN mvn -am -pl "modules/openapi-generator-cli" package
+RUN mvn -am -pl "modules/openapi-generator-cli" package -Dmaven.test.skip
 
-# This exists at the end of the file to benefit from cached layers when modifying docker-entrypoint.sh.
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN ln -s /usr/local/bin/docker-entrypoint.sh /usr/local/bin/openapi-generator
+FROM gcr.io/distroless/java11-debian11
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+COPY --from=builder /opt/openapi-generator/modules/openapi-generator-cli/target/openapi-generator-cli.jar /
+
+ENTRYPOINT ["java", "-Xmx1024m", "-jar", "/openapi-generator-cli.jar"]
 
 CMD ["help"]
